@@ -19,9 +19,18 @@
           </li> 
         </ul>
         <ul class="nav navbar-nav navbar-right">
-          <li class="{% if request.endpoint == 'register' %}active{% endif %}" id="bs-example-navbar-collapse-1">
-            <a href="{{ url_for('register') }}">Register</a>
-          </li> 
+          {% if not current_user.is_authenticated %}
+            <li class="{% if request.endpoint == 'login' %}active{% endif %}" id="bs-example-navbar-collapse-1">
+              <a href="{{ url_for('login') }}">Login</a>
+            </li> 
+            <li class="{% if request.endpoint == 'register' %}active{% endif %}" id="bs-example-navbar-collapse-1">
+              <a href="{{ url_for('register') }}">Register</a>
+            </li> 
+          {% else %}
+            <li class="{% if request.endpoint == 'logout' %}active{% endif %}" id="bs-example-navbar-collapse-1">
+              <a href="{{ url_for('logout') }}">Logout</a>
+            </li> 
+          {% endif %}
         </ul>
       </div><!-- /.navbar-collapse -->
     </div><!-- /.container-fluid -->
