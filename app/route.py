@@ -1,7 +1,8 @@
 from flask import render_template, flash, redirect, url_for, request
 from flask_login import login_user, login_required, current_user, logout_user
 from app import app, db, bcrypt
-from app.forms import RegisterForm, LoginForm, PasswordResetRequestForm
+from app.forms import RegisterForm, LoginForm, PasswordResetRequestForm, ResetPasswordForm
+from app.email import send_reset_password_mail
 from app.models import User
 
 
@@ -47,14 +48,27 @@ def login():
     return render_template('login.html', form=form)
 
 @app.route('/logout')
+@login_required
 def logout():
     logout_user()
     return redirect(url_for('login'))
 
 @app.route('/send_password_reset_request', methods=['GET', 'POST'])
-@login_required
 def send_password_reset_request():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
     form = PasswordResetRequestForm()
+    if form.validate_on_submit():
+        email = form.email.data
+        user = User.query.filter_by(email=email).first()
+        token = user.generate_reset_password_token()
+        send_reset_password_mail(user, token)
+        flash('An email has been sent with instructions to reset your password', category='info')
     return render_template('send_password_reset_request.html', form=form)
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = ResetPasswordForm()
+    return render_template('reset_password.html', form=form)
